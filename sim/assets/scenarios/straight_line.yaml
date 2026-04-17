@@ -1,0 +1,25 @@
+description: "Navigate from start to goal in a straight line across flat terrain."
+difficulty: "easy"
+
+start:
+  x: 0.0
+  y: 0.0
+  theta: 0.0          # initial yaw (radians)
+
+goal:
+  x: 8.0
+  y: 0.0
+
+waypoints:            # intermediate waypoints the planner must pass through
+  - { x: 4.0, y: 0.0 }
+  - { x: 8.0, y: 0.0 }
+
+obstacles: []         # no obstacles
+
+terrain: flat
+
+bounds:               # planning workspace limits (metres)
+  x_min: -2.0
+  x_max: 12.0
+  y_min: -4.0
+  y_max:  4.0

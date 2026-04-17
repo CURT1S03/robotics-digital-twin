@@ -1,0 +1,32 @@
+description: "Navigate from start to goal while avoiding a field of circular obstacles."
+difficulty: "hard"
+
+start:
+  x: 0.0
+  y: 0.0
+  theta: 0.0
+
+goal:
+  x: 8.0
+  y: 0.0
+
+waypoints:            # high-level route hints; RRT will refine these
+  - { x: 2.0, y:  1.5 }
+  - { x: 5.0, y: -1.5 }
+  - { x: 8.0, y:  0.0 }
+
+obstacles:
+  - { x: 2.0, y:  0.0, radius: 0.6 }
+  - { x: 3.5, y: -1.0, radius: 0.5 }
+  - { x: 3.5, y:  1.0, radius: 0.5 }
+  - { x: 5.0, y:  0.5, radius: 0.6 }
+  - { x: 6.5, y: -0.8, radius: 0.5 }
+  - { x: 6.5, y:  0.8, radius: 0.5 }
+
+terrain: flat         # Isaac Sim terrain type
+
+bounds:
+  x_min: -2.0
+  x_max: 12.0
+  y_min: -5.0
+  y_max:  5.0
