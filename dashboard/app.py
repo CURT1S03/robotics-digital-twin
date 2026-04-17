@@ -35,13 +35,13 @@ st.sidebar.caption("**Docs:** http://localhost:8000/docs")
 
 # ── Route to page ─────────────────────────────────────────────────────────── #
 if page == "Experiments":
-    from dashboard.pages.experiments import render
+    from pages.experiments import render
     render()
 
 elif page == "Live Monitor":
-    from dashboard.pages.live_monitor import render
+    from pages.live_monitor import render
     render()
 
 elif page == "Comparison":
-    from dashboard.pages.comparison import render
+    from pages.comparison import render
     render()

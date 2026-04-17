@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dashboard.components import api_client as api
+from components import api_client as api
 
 
 def render():

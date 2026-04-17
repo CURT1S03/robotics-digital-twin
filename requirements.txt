@@ -1,5 +1,6 @@
 # ── Backend ────────────────────────────────────────────────────────────────── #
-fastapi>=0.111.0
+# Pin to match isaacsim-kernel's requirement; starlette warning from isaaclab is non-fatal
+fastapi==0.115.7
 uvicorn[standard]>=0.29.0
 pydantic>=2.7.0
 pydantic-settings>=2.3.0

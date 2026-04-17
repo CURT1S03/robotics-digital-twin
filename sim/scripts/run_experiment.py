@@ -45,10 +45,10 @@ parser.add_argument("--planner",       type=str, default="waypoint",
 parser.add_argument("--scenario",      type=str, default="straight_line")
 parser.add_argument("--trial_number",  type=int, default=1)
 parser.add_argument("--max_steps",     type=int, default=2000)
-parser.add_argument("--headless",      action="store_true", default=False)
 parser.add_argument("--log_dir",       type=str, default=None)
 parser.add_argument("--planner_params", type=str, default="{}")
 
+# AppLauncher adds --headless and other Isaac-specific arguments
 from isaaclab.app import AppLauncher  # noqa: E402
 
 AppLauncher.add_app_launcher_args(parser)
@@ -61,6 +61,9 @@ import torch  # noqa: E402
 from isaacsim.core.api import SimulationContext  # noqa: E402
 from isaacsim.core.utils.stage import add_reference_to_stage  # noqa: E402
 from isaacsim.storage.native import get_assets_root_path  # noqa: E402
+
+import omni.usd  # noqa: E402
+from pxr import UsdGeom, UsdLux, Gf, Sdf  # noqa: E402
 
 # ── Project imports ────────────────────────────────────────────────────────── #
 import yaml  # noqa: E402
@@ -138,7 +141,42 @@ def main() -> None:
     go2_usd = f"{assets_root}/Isaac/Robots/Unitree/Go2/go2.usd"
 
     sim_context = SimulationContext(stage_units_in_meters=1.0)
+    stage = omni.usd.get_context().get_stage()
+
+    # ── Ground plane ──────────────────────────────────────────────────── #
+    ground_path = "/World/GroundPlane"
+    if not stage.GetPrimAtPath(ground_path).IsValid():
+        add_reference_to_stage(
+            f"{assets_root}/Isaac/Environments/Grid/default_environment.usd",
+            ground_path,
+        )
+
+    # ── Dome light for visibility ─────────────────────────────────────── #
+    light_path = "/World/DomeLight"
+    if not stage.GetPrimAtPath(light_path).IsValid():
+        dome = UsdLux.DomeLight.Define(stage, light_path)
+        dome.CreateIntensityAttr(1000.0)
+
+    # ── Load Go2 robot ────────────────────────────────────────────────── #
     add_reference_to_stage(go2_usd, "/World/Go2")
+
+    # ── Position camera to see the robot and path ─────────────────────── #
+    camera_path = "/World/OverviewCamera"
+    if not stage.GetPrimAtPath(camera_path).IsValid():
+        cam = UsdGeom.Camera.Define(stage, camera_path)
+        cam_xform = UsdGeom.Xformable(cam.GetPrim())
+        cam_xform.ClearXformOpOrder()
+        cam_xform.AddTranslateOp().Set(Gf.Vec3d(4.0, -6.0, 5.0))
+        cam_xform.AddRotateXYZOp().Set(Gf.Vec3f(55.0, 0.0, 30.0))
+
+    # Set the active viewport camera
+    try:
+        import omni.kit.viewport.utility as vp_util  # noqa: E402
+        vp_api = vp_util.get_active_viewport()
+        if vp_api is not None:
+            vp_api.set_active_camera(camera_path)
+    except Exception:
+        pass  # Viewport API may not be available in all configs
 
     sim_context.initialize_physics()
     sim_context.play()
@@ -157,12 +195,7 @@ def main() -> None:
         simulation_app.update()
 
         # ── Read robot state ─────────────────────────────────────────── #
-        # In a full Isaac Lab integration the articulation API provides
-        # pose.  Here we use the simplified stage API for demo purposes.
         try:
-            from pxr import UsdGeom, Gf
-            from omni.usd import get_context
-            stage = get_context().get_stage()
             xform = UsdGeom.Xformable(stage.GetPrimAtPath("/World/Go2"))
             tf = xform.ComputeLocalToWorldTransform(0)
             tx, ty, tz = tf[3][0], tf[3][1], tf[3][2]

@@ -7,8 +7,8 @@ import time
 import streamlit as st
 import pandas as pd
 
-from dashboard.components import api_client as api
-from dashboard.components.charts import trajectory_chart, metrics_line_chart
+from components import api_client as api
+from components.charts import trajectory_chart, metrics_line_chart
 
 
 def render():

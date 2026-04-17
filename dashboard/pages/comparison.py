@@ -5,8 +5,8 @@ from __future__ import annotations
 import streamlit as st
 import pandas as pd
 
-from dashboard.components import api_client as api
-from dashboard.components.charts import (
+from components import api_client as api
+from components.charts import (
     metrics_bar_chart,
     multi_trajectory_chart,
 )

@@ -213,9 +213,33 @@ class SimManager:
         self._current_run_id = None
 
     def _resolve_isaaclab_python(self) -> list[str]:
-        """Return the command prefix to invoke Isaac Lab's Python."""
-        isaaclab_bat = Path(settings.isaaclab_path) / "isaaclab.bat"
-        if isaaclab_bat.exists():
-            return [str(isaaclab_bat), "-p"]
-        # Fallback: assume isaaclab is on PATH
-        return ["isaaclab", "-p"]
+        """Return the command prefix to invoke Isaac Lab's Python.
+
+        Priority:
+        1. Conda env python (pip-installed Isaac Lab)
+        2. Isaac Lab _isaac_sim/python.bat (standalone symlink)
+        3. Isaac Sim standalone python.bat
+        """
+        # 1. Conda env python
+        conda_python = Path(os.environ.get("CONDA_PREFIX", "")) / "python.exe"
+        if not conda_python.exists():
+            # Try resolving from settings.conda_env_name
+            from pathlib import PureWindowsPath
+            miniconda = Path(os.environ.get("USERPROFILE", "")) / "Miniconda3"
+            conda_python = miniconda / "envs" / settings.conda_env_name / "python.exe"
+        if conda_python.exists():
+            logger.info("Using conda Python: %s", conda_python)
+            return [str(conda_python)]
+
+        # 2. Isaac Lab bundled python.bat
+        if sys.platform == "win32":
+            isaac_python = Path(settings.isaaclab_path) / "_isaac_sim" / "python.bat"
+            if isaac_python.exists():
+                return ["cmd", "/c", str(isaac_python)]
+            # 3. Fallback: Isaac Sim's python.bat
+            return ["cmd", "/c", str(Path(settings.isaacsim_path) / "python.bat")]
+        else:
+            isaac_python = Path(settings.isaaclab_path) / "_isaac_sim" / "python.sh"
+            if isaac_python.exists():
+                return [str(isaac_python)]
+            return [str(Path(settings.isaacsim_path) / "python.sh")]
